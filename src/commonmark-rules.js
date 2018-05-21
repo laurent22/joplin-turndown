@@ -128,6 +128,10 @@ rules.horizontalRule = {
   }
 }
 
+function filterLinkContent(content) {
+  return content.trim().replace(/[\n\r]+/g, '<br>')
+}
+
 rules.inlineLink = {
   filter: function (node, options) {
     return (
@@ -140,7 +144,7 @@ rules.inlineLink = {
   replacement: function (content, node) {
     var href = node.getAttribute('href')
     var title = node.title ? ' "' + node.title + '"' : ''
-    return '[' + content + '](' + href + title + ')'
+    return '[' + filterLinkContent(content) + '](' + href + title + ')'
   }
 }
 
@@ -158,6 +162,8 @@ rules.referenceLink = {
     var title = node.title ? ' "' + node.title + '"' : ''
     var replacement
     var reference
+
+    content = filterLinkContent(content)
 
     switch (options.linkReferenceStyle) {
       case 'collapsed':
