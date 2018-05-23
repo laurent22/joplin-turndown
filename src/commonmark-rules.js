@@ -132,6 +132,13 @@ function filterLinkContent(content) {
   return content.trim().replace(/[\n\r]+/g, '<br>')
 }
 
+function filterLinkHref(href) {
+  if (!href) return '';
+  href = href.trim();
+  if (href.toLowerCase().indexOf('javascript:') === 0) return ''; // We don't want to keep js code in the markdown
+  return href;
+}
+
 rules.inlineLink = {
   filter: function (node, options) {
     return (
@@ -142,8 +149,9 @@ rules.inlineLink = {
   },
 
   replacement: function (content, node) {
-    var href = node.getAttribute('href')
+    var href = filterLinkHref(node.getAttribute('href'))
     var title = node.title ? ' "' + node.title + '"' : ''
+    if (!href) title = '';
     return '[' + filterLinkContent(content) + '](' + href + title + ')'
   }
 }
@@ -158,8 +166,9 @@ rules.referenceLink = {
   },
 
   replacement: function (content, node, options) {
-    var href = node.getAttribute('href')
+    var href = filterLinkHref(node.getAttribute('href'))
     var title = node.title ? ' "' + node.title + '"' : ''
+    if (!href) title = '';
     var replacement
     var reference
 
