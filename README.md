@@ -4,6 +4,13 @@
 
 Convert HTML into Markdown with JavaScript.
 
+## Modifications
+
+**This is a mod of the original turndown package for use with Joplin.** The following changes have been made:
+
+- Remove JavaScript code from links
+- Prevent newlines inside link text
+
 ### to-markdown has been renamed to Turndown. See the [migration guide](https://github.com/domchristie/to-markdown/wiki/Migrating-from-to-markdown-to-Turndown) for details.
 
 ## Installation
