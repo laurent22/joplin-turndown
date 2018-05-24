@@ -10,6 +10,7 @@ Convert HTML into Markdown with JavaScript.
 
 - Remove JavaScript code from links
 - Prevent newlines inside link text
+- Fixed ordered lists indentation when there are more than 9 items
 
 ### to-markdown has been renamed to Turndown. See the [migration guide](https://github.com/domchristie/to-markdown/wiki/Migrating-from-to-markdown-to-Turndown) for details.
 
