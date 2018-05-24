@@ -66,8 +66,6 @@ rules.listItem = {
       .replace(/^\n+/, '') // remove leading newlines
       .replace(/\n+$/, '\n') // replace trailing newlines with just a single one
       .replace(/\n/gm, '\n    ') // indent
-      .trim()
-      .replace(/\n/g, '<br>')
     var prefix = options.bulletListMarker + '   '
     var parent = node.parentNode
     if (parent.nodeName === 'OL') {
