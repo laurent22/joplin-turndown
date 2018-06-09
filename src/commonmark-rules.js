@@ -71,7 +71,7 @@ rules.listItem = {
     if (parent.nodeName === 'OL') {
       var start = parent.getAttribute('start')
       var index = Array.prototype.indexOf.call(parent.children, node)
-      var indexStr = (start ? Number(start) + index : index + 1) + '';
+      var indexStr = (start ? Number(start) + index : index + 1) + ''
       // The content of the line that contains the bullet must align wih the following lines.
       //
       // i.e it should be:
@@ -97,7 +97,22 @@ rules.listItem = {
 }
 
 rules.indentedCodeBlock = {
+
+  // To handle code that is presented as below (see https://github.com/laurent22/joplin/issues/573)
+  //
+  // <td class="code">
+  //   <pre class="python">
+  //     <span style="color: #ff7700;font-weight:bold;">def</span> ma_fonction
+  //   </pre>
+  // </td>
+  isSpecialCase1: function (node) {
+    const parent = node.parentNode
+    return parent.classList.contains('code') && parent.nodeName === 'TD' && node.nodeName === 'PRE'
+  },
+
   filter: function (node, options) {
+    if (rules.indentedCodeBlock.isSpecialCase1(node)) return true
+
     return (
       options.codeBlockStyle === 'indented' &&
       node.nodeName === 'PRE' &&
@@ -107,9 +122,11 @@ rules.indentedCodeBlock = {
   },
 
   replacement: function (content, node, options) {
+    const handledNode = rules.indentedCodeBlock.isSpecialCase1(node) ? node : node.firstChild
+
     return (
       '\n\n    ' +
-      node.firstChild.textContent.replace(/\n/g, '\n    ') +
+      handledNode.textContent.replace(/\n/g, '\n    ') +
       '\n\n'
     )
   }
@@ -145,15 +162,15 @@ rules.horizontalRule = {
   }
 }
 
-function filterLinkContent(content) {
+function filterLinkContent (content) {
   return content.trim().replace(/[\n\r]+/g, '<br>')
 }
 
-function filterLinkHref(href) {
-  if (!href) return '';
-  href = href.trim();
-  if (href.toLowerCase().indexOf('javascript:') === 0) return ''; // We don't want to keep js code in the markdown
-  return href;
+function filterLinkHref (href) {
+  if (!href) return ''
+  href = href.trim()
+  if (href.toLowerCase().indexOf('javascript:') === 0) return '' // We don't want to keep js code in the markdown
+  return href
 }
 
 rules.inlineLink = {
@@ -168,7 +185,7 @@ rules.inlineLink = {
   replacement: function (content, node) {
     var href = filterLinkHref(node.getAttribute('href'))
     var title = node.title ? ' "' + node.title + '"' : ''
-    if (!href) title = '';
+    if (!href) title = ''
     return '[' + filterLinkContent(content) + '](' + href + title + ')'
   }
 }
@@ -185,7 +202,7 @@ rules.referenceLink = {
   replacement: function (content, node, options) {
     var href = filterLinkHref(node.getAttribute('href'))
     var title = node.title ? ' "' + node.title + '"' : ''
-    if (!href) title = '';
+    if (!href) title = ''
     var replacement
     var reference
 
