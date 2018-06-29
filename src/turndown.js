@@ -186,7 +186,15 @@ function process (parentNode) {
 
     var replacement = ''
     if (node.nodeType === 3) {
-      replacement = node.isCode ? node.nodeValue : self.escape(node.nodeValue)
+      if (node.isCode) {
+        replacement = node.nodeValue
+      } else {
+        replacement = self.escape(node.nodeValue)
+
+        // Escape < and > so that, for example, this kind of HTML text: "This is a tag: &lt;p&gt;" is still rendered as "This is a tag: &lt;p&gt;"
+        // and not "This is a tag: <p>". If the latter, it means the HTML will be rendered if the viewer supports HTML (which, in Joplin, it does).
+        replacement = replacement.replace(/<(.+?)>/g, '&lt;$1&gt;');
+      }
     } else if (node.nodeType === 1) {
       replacement = replacementForNode.call(self, node)
     }
