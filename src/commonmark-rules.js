@@ -170,6 +170,9 @@ function filterLinkHref (href) {
   if (!href) return ''
   href = href.trim()
   if (href.toLowerCase().indexOf('javascript:') === 0) return '' // We don't want to keep js code in the markdown
+  // Replace the spaces with %20 because otherwise they can cause problems for some
+  // renderer and space is not a valid URL character anyway.
+  href = href.replace(/ /g, '%20');
   return href
 }
 
@@ -282,15 +285,66 @@ rules.code = {
   }
 }
 
+function imageMarkdownFromNode(node) {
+  var alt = node.alt || ''
+  var src = node.getAttribute('src') || ''
+  var title = node.title || ''
+  var titlePart = title ? ' "' + title + '"' : ''
+  return src ? '![' + alt + ']' + '(' + src + titlePart + ')' : ''
+}
+
+function imageUrlFromSource(node) {
+  // Format of srcset can be:
+  // srcset="kitten.png"
+  // or:
+  // srcset="kitten.png, kitten@2X.png 2x"
+
+  let src = node.getAttribute('srcset');
+  if (!src) src = node.getAttribute('data-srcset');
+  if (!src) return '';
+
+  const s = src.split(',');
+  if (!s.length) return '';
+  src = s[0];
+
+  src = src.split(' ');
+  return src[0];
+}
+
 rules.image = {
   filter: 'img',
 
   replacement: function (content, node) {
-    var alt = node.alt || ''
-    var src = node.getAttribute('src') || ''
-    var title = node.title || ''
-    var titlePart = title ? ' "' + title + '"' : ''
-    return src ? '![' + alt + ']' + '(' + src + titlePart + ')' : ''
+    return imageMarkdownFromNode(node);
+  }
+}
+
+rules.picture = {
+  filter: 'picture',
+
+  replacement: function (content, node) {
+    if (!node.childNodes) return '';
+
+    let firstSource = null;
+    let firstImg = null;
+
+    for (let i = 0; i < node.childNodes.length; i++) {
+      const child = node.childNodes[i];
+
+      if (child.nodeName === 'SOURCE' && !firstSource) firstSource = child;
+      if (child.nodeName === 'IMG') firstImg = child;
+    }
+
+    if (firstImg && firstImg.getAttribute('src')) {
+      return imageMarkdownFromNode(firstImg);
+    } else if (firstSource) {
+      // A <picture> tag can have multiple <source> tag and the browser should decide which one to download
+      // but for now let's pick the first one.
+      const src = imageUrlFromSource(firstSource);
+      return src ? '![](' + src + ')' : '';
+    }
+
+    return '';
   }
 }
 
