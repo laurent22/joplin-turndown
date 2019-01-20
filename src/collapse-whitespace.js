@@ -25,6 +25,14 @@
  * THE SOFTWARE.
  */
 
+function containsOnlySpaces(text) {
+  if (!text) return false;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] !== ' ') return false;
+  }
+  return true;
+}
+
 /**
  * collapseWhitespace(options) removes extraneous whitespace from an the given element.
  *
@@ -46,6 +54,11 @@ function collapseWhitespace (options) {
   var prev = null
   var node = next(prev, element, isPre)
 
+  // We keep track of whether the previous was only spaces or not. This prevent the case where multiple empty blocks are
+  // added, which results in multiple spaces. This spaces are then incorrectly interpreted as a code block by renderers.
+  // So by keeping track of this, we make sure that only one space at most is added.
+  var prevTextIsOnlySpaces = false;
+
   while (node !== element) {
     if (node.nodeType === 3 || node.nodeType === 4) { // Node.TEXT_NODE or Node.CDATA_SECTION_NODE
       var text = node.data.replace(/[ \r\n\t]+/g, ' ')
@@ -55,12 +68,15 @@ function collapseWhitespace (options) {
         text = text.substr(1)
       }
 
+      var textIsOnlySpaces = containsOnlySpaces(text);
+
       // `text` might be empty at this point.
-      if (!text) {
+      if (!text || (textIsOnlySpaces && prevTextIsOnlySpaces)) {
         node = remove(node)
         continue
       }
 
+      prevTextIsOnlySpaces = textIsOnlySpaces;
       node.data = text
 
       prevText = node
