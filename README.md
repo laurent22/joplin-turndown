@@ -13,6 +13,7 @@ Convert HTML into Markdown with JavaScript.
 - Fixed ordered lists indentation when there are more than 9 items.
 - Added support for `<picture>` tags.
 - Fixed encoding of anchor URLs.
+- Support named anchors (`<a href="#internal-link">Internal link</a>`, which would link to `<a id="internal-link"></a>`)
 
 ### to-markdown has been renamed to Turndown. See the [migration guide](https://github.com/domchristie/to-markdown/wiki/Migrating-from-to-markdown-to-Turndown) for details.
 

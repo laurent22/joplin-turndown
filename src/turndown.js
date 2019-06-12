@@ -21,6 +21,7 @@ export default function TurndownService (options) {
     strongDelimiter: '**',
     linkStyle: 'inlined',
     linkReferenceStyle: 'full',
+    anchorNames: [],
     br: '  ',
     blankReplacement: function (content, node) {
       return node.isBlock ? '\n\n' : ''

@@ -1,4 +1,6 @@
 import { repeat } from './utilities'
+const Entities = require('html-entities').AllHtmlEntities;
+const htmlentities = (new Entities()).encode;
 
 var rules = {}
 
@@ -176,20 +178,36 @@ function filterLinkHref (href) {
   return href
 }
 
+function getNamedAnchorFromLink(node, options) {
+  var id = node.getAttribute('id')
+  if (!id) id = node.getAttribute('name')
+  if (id) id = id.trim();
+
+  if (id && options.anchorNames.indexOf(id.toLowerCase()) >= 0) {
+    return '<a id="' + htmlentities(id) + '"></a>';
+  } else {
+    return '';
+  }
+}
+
 rules.inlineLink = {
   filter: function (node, options) {
     return (
       options.linkStyle === 'inlined' &&
       node.nodeName === 'A' &&
-      node.getAttribute('href')
+      (node.getAttribute('href') || node.getAttribute('name') || node.getAttribute('id'))
     )
   },
 
-  replacement: function (content, node) {
+  replacement: function (content, node, options) {
     var href = filterLinkHref(node.getAttribute('href'))
-    var title = node.title ? ' "' + node.title + '"' : ''
-    if (!href) title = ''
-    return '[' + filterLinkContent(content) + '](' + href + title + ')'
+    if (!href) {
+      return getNamedAnchorFromLink(node, options) + filterLinkContent(content)
+    } else {
+      var title = node.title ? ' "' + node.title + '"' : ''
+      if (!href) title = ''
+      return getNamedAnchorFromLink(node, options) + '[' + filterLinkContent(content) + '](' + href + title + ')'
+    }
   }
 }
 
