@@ -99,40 +99,38 @@ rules.listItem = {
   }
 }
 
+// To handle code that is presented as below (see https://github.com/laurent22/joplin/issues/573)
+//
+// <td class="code">
+//   <pre class="python">
+//     <span style="color: #ff7700;font-weight:bold;">def</span> ma_fonction
+//   </pre>
+// </td>
+function isCodeBlockSpecialCase1(node) {
+  const parent = node.parentNode
+  return parent.classList.contains('code') && parent.nodeName === 'TD' && node.nodeName === 'PRE'
+}
+
+// To handle PRE tags that have a monospace font family. In that case
+// we assume it is a code block.
+function isCodeBlockSpecialCase2(node) {
+  if (node.nodeName !== 'PRE') return false;
+
+  const style = node.getAttribute('style');
+  if (!style) return false;
+  const o = css.parse('pre {' + style + '}');
+  if (!o.stylesheet.rules.length) return;
+  const fontFamily = o.stylesheet.rules[0].declarations.find(d => d.property.toLowerCase() === 'font-family');
+  const isMonospace = fontFamily.value.split(',').map(e => e.trim().toLowerCase()).indexOf('monospace') >= 0;
+  return isMonospace;
+}
+
 rules.indentedCodeBlock = {
-
-  // To handle code that is presented as below (see https://github.com/laurent22/joplin/issues/573)
-  //
-  // <td class="code">
-  //   <pre class="python">
-  //     <span style="color: #ff7700;font-weight:bold;">def</span> ma_fonction
-  //   </pre>
-  // </td>
-  isSpecialCase1: function (node) {
-    const parent = node.parentNode
-    return parent.classList.contains('code') && parent.nodeName === 'TD' && node.nodeName === 'PRE'
-  },
-
-  // To handle PRE tags that have a monospace font family. In that case
-  // we assume it is a code block.
-  isSpecialCase2: function (node) {
-    if (node.nodeName !== 'PRE') return false;
-
-    const style = node.getAttribute('style');
-    if (!style) return false;
-    const o = css.parse('pre {' + style + '}');
-    if (!o.stylesheet.rules.length) return;
-    const fontFamily = o.stylesheet.rules[0].declarations.find(d => d.property.toLowerCase() === 'font-family');
-    const isMonospace = fontFamily.value.split(',').map(e => e.trim().toLowerCase()).indexOf('monospace') >= 0;
-    return isMonospace;
-  },
-
   filter: function (node, options) {
-    if (rules.indentedCodeBlock.isSpecialCase1(node)) return true
-    if (rules.indentedCodeBlock.isSpecialCase2(node)) return true
+    if (options.codeBlockStyle !== 'indented') return false
+    if (isCodeBlockSpecialCase1(node) || isCodeBlockSpecialCase2(node)) return true
 
     return (
-      options.codeBlockStyle === 'indented' &&
       node.nodeName === 'PRE' &&
       node.firstChild &&
       node.firstChild.nodeName === 'CODE'
@@ -140,7 +138,7 @@ rules.indentedCodeBlock = {
   },
 
   replacement: function (content, node, options) {
-    const handledNode = rules.indentedCodeBlock.isSpecialCase1(node) ? node : node.firstChild
+    const handledNode = isCodeBlockSpecialCase1(node) ? node : node.firstChild
 
     return (
       '\n\n    ' +
@@ -152,8 +150,10 @@ rules.indentedCodeBlock = {
 
 rules.fencedCodeBlock = {
   filter: function (node, options) {
+    if (options.codeBlockStyle !== 'fenced') return false;
+    if (isCodeBlockSpecialCase1(node) || isCodeBlockSpecialCase2(node)) return true
+
     return (
-      options.codeBlockStyle === 'fenced' &&
       node.nodeName === 'PRE' &&
       node.firstChild &&
       node.firstChild.nodeName === 'CODE'
@@ -161,12 +161,14 @@ rules.fencedCodeBlock = {
   },
 
   replacement: function (content, node, options) {
-    var className = node.firstChild.className || ''
+    const handledNode = isCodeBlockSpecialCase1(node) ? node : node.firstChild
+
+    var className = handledNode.firstChild.className || ''
     var language = (className.match(/language-(\S+)/) || [null, ''])[1]
 
     return (
       '\n\n' + options.fence + language + '\n' +
-      node.firstChild.textContent +
+      handledNode.textContent +
       '\n' + options.fence + '\n\n'
     )
   }
