@@ -1,6 +1,7 @@
 import { repeat } from './utilities'
 const Entities = require('html-entities').AllHtmlEntities;
 const htmlentities = (new Entities()).encode;
+const css = require('css');
 
 var rules = {}
 
@@ -112,8 +113,23 @@ rules.indentedCodeBlock = {
     return parent.classList.contains('code') && parent.nodeName === 'TD' && node.nodeName === 'PRE'
   },
 
+  // To handle PRE tags that have a monospace font family. In that case
+  // we assume it is a code block.
+  isSpecialCase2: function (node) {
+    if (node.nodeName !== 'PRE') return false;
+
+    const style = node.getAttribute('style');
+    if (!style) return false;
+    const o = css.parse('pre {' + style + '}');
+    if (!o.stylesheet.rules.length) return;
+    const fontFamily = o.stylesheet.rules[0].declarations.find(d => d.property.toLowerCase() === 'font-family');
+    const isMonospace = fontFamily.value.split(',').map(e => e.trim().toLowerCase()).indexOf('monospace') >= 0;
+    return isMonospace;
+  },
+
   filter: function (node, options) {
     if (rules.indentedCodeBlock.isSpecialCase1(node)) return true
+    if (rules.indentedCodeBlock.isSpecialCase2(node)) return true
 
     return (
       options.codeBlockStyle === 'indented' &&
