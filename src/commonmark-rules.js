@@ -163,7 +163,7 @@ rules.fencedCodeBlock = {
   replacement: function (content, node, options) {
     const handledNode = isCodeBlockSpecialCase1(node) ? node : node.firstChild
 
-    var className = handledNode.firstChild.className || ''
+    var className = handledNode.className || ''
     var language = (className.match(/language-(\S+)/) || [null, ''])[1]
 
     return (
