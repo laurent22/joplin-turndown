@@ -180,14 +180,14 @@ TurndownService.prototype = {
  * @type String
  */
 
-function process (parentNode) {
+function process (parentNode, escapeContent = 'auto') {
   var self = this
   return reduce.call(parentNode.childNodes, function (output, node) {
     node = new Node(node)
 
     var replacement = ''
     if (node.nodeType === 3) {
-      if (node.isCode) {
+      if (node.isCode || escapeContent === false) {
         replacement = node.nodeValue
       } else {
         replacement = self.escape(node.nodeValue)
@@ -233,7 +233,7 @@ function postProcess (output) {
 
 function replacementForNode (node) {
   var rule = this.rules.forNode(node)
-  var content = process.call(this, node)
+  var content = process.call(this, node, rule.escapeContent ? rule.escapeContent() : 'auto')
   var whitespace = node.flankingWhitespace
   if (whitespace.leading || whitespace.trailing) content = content.trim()
   return (

@@ -384,4 +384,65 @@ rules.picture = {
   }
 }
 
+// ===============================================================================
+// MATHJAX support
+//
+// When encountering Mathjax elements there's first the rendered Mathjax,
+// which we want to skip because it cannot be converted reliably to Markdown.
+// This tag is followed by the actual MathJax script in a <script> tag, which
+// is what we want to export. By wrapping this text in "$" or "$$" it will
+// be displayed correctly by Katex in Joplin.
+//
+// See mathjax_inline and mathjax_block test cases.
+// ===============================================================================
+
+function majaxScriptBlockType(node) {
+  if (node.nodeName !== 'SCRIPT') return null;
+
+  const a = node.getAttribute('type');
+  if (!a || a.indexOf('math/tex') < 0) return null;
+
+  return a.indexOf('display') >= 0 ? 'block' : 'inline';
+}
+
+rules.mathjaxRendered = {
+  filter: function (node) {
+    return node.nodeName === 'SPAN' && node.getAttribute('class') === 'MathJax';
+  },
+
+  replacement: function (content, node, options) {
+    return '';
+  }
+}
+
+rules.mathjaxScriptInline = {
+  filter: function (node) {
+    return majaxScriptBlockType(node) === 'inline';
+  },
+
+  escapeContent: function() {
+    // We want the raw unescaped content since this is what Katex will need to render
+    // If we escape, it will double the \\ in particular.
+    return false;
+  },
+
+  replacement: function (content, node, options) {
+    return '$' + content + '$';
+  }
+}
+
+rules.mathjaxScriptBlock = {
+  filter: function (node) {
+    return majaxScriptBlockType(node) === 'block';
+  },
+
+  escapeContent: function() {
+    return false;
+  },
+
+  replacement: function (content, node, options) {
+    return '$$\n' + content + '\n$$';
+  }
+}
+
 export default rules
