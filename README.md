@@ -15,6 +15,8 @@ Convert HTML into Markdown with JavaScript.
 - Fixed encoding of anchor URLs.
 - Support named anchors (`<a href="#internal-link">Internal link</a>`, which would link to `<a id="internal-link"></a>`)
 - Detect more types of code blocks based on special cases.
+- Handle MathJax blocks
+- Allow a rule to specify whether it wants its content escaped or not
 
 ### to-markdown has been renamed to Turndown. See the [migration guide](https://github.com/domchristie/to-markdown/wiki/Migrating-from-to-markdown-to-Turndown) for details.
 
