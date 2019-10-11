@@ -229,6 +229,19 @@ rules.inlineLink = {
   }
 }
 
+// Normally a named anchor would be <a name="something"></a> but
+// you can also find <span id="something">Something</span> so the
+// rule below handle this.
+rules.otherNamedAnchors = {
+  filter: function (node, options) {
+    return !!getNamedAnchorFromLink(node, options);
+  },
+
+  replacement: function (content, node, options) {
+    return getNamedAnchorFromLink(node, options) + content;
+  }
+}
+
 rules.referenceLink = {
   filter: function (node, options) {
     return (
