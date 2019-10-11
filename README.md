@@ -25,7 +25,7 @@ Convert HTML into Markdown with JavaScript.
 npm:
 
 ```
-npm install turndown
+npm install joplin-turndown
 ```
 
 Browser:
