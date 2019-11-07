@@ -161,7 +161,8 @@ rules.fencedCodeBlock = {
   },
 
   replacement: function (content, node, options) {
-    const handledNode = isCodeBlockSpecialCase1(node) ? node : node.firstChild
+    let handledNode = node.firstChild;
+    if (isCodeBlockSpecialCase1(node) || isCodeBlockSpecialCase2(node)) handledNode = node;
 
     var className = handledNode.className || ''
     var language = (className.match(/language-(\S+)/) || [null, ''])[1]
@@ -232,6 +233,7 @@ rules.inlineLink = {
 // Normally a named anchor would be <a name="something"></a> but
 // you can also find <span id="something">Something</span> so the
 // rule below handle this.
+// Fixes https://github.com/laurent22/joplin/issues/1876
 rules.otherNamedAnchors = {
   filter: function (node, options) {
     return !!getNamedAnchorFromLink(node, options);
