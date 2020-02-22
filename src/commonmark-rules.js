@@ -475,19 +475,29 @@ rules.mathjaxScriptBlock = {
 // block for lossless conversion.
 // ===============================================================================
 
-function joplinSourceBlockInfo(node) {
-  if (node.nodeName !== 'PRE') return null;
-  if (!node.classList.contains('joplin-source')) return null;
+function joplinEditableBlockInfo(node) {
+  if (!node.classList.contains('joplin-editable')) return null;
+
+  let sourceNode = null;
+  for (const childNode of node.childNodes) {
+    if (childNode.classList.contains('joplin-source')) {
+      sourceNode = childNode;
+      break;
+    }
+  }
+
+  if (!sourceNode) return null;
 
   return {
-    openCharacters: node.getAttribute('data-joplin-source-open'),
-    closeCharacters: node.getAttribute('data-joplin-source-close'),
+    openCharacters: sourceNode.getAttribute('data-joplin-source-open'),
+    closeCharacters: sourceNode.getAttribute('data-joplin-source-close'),
+    content: sourceNode.textContent,
   };
 }
 
 rules.joplinSourceBlock = {
   filter: function (node) {
-    return !!joplinSourceBlockInfo(node);
+    return !!joplinEditableBlockInfo(node);
   },
 
   escapeContent: function() {
@@ -495,10 +505,10 @@ rules.joplinSourceBlock = {
   },
 
   replacement: function (content, node, options) {
-    const info = joplinSourceBlockInfo(node);
+    const info = joplinEditableBlockInfo(node);
     if (!info) return;
 
-    return info.openCharacters + content + info.closeCharacters;
+    return info.openCharacters + info.content + info.closeCharacters;
   }
 }
 
