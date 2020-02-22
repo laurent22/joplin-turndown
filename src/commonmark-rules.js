@@ -460,4 +460,46 @@ rules.mathjaxScriptBlock = {
   }
 }
 
+// ===============================================================================
+// End of MATHJAX support
+// ===============================================================================
+
+
+
+// ===============================================================================
+// Joplin Source block support
+// 
+// This is specific to Joplin: a plugin may convert some Markdown to HTML
+// but keep the original source in a hidden <PRE class="joplin-source"> block.
+// In that case, when we convert back again from HTML to MD, we use that
+// block for lossless conversion.
+// ===============================================================================
+
+function joplinSourceBlockInfo(node) {
+  if (node.nodeName !== 'PRE') return null;
+  if (!node.classList.contains('joplin-source')) return null;
+
+  return {
+    openCharacters: node.getAttribute('data-joplin-source-open'),
+    closeCharacters: node.getAttribute('data-joplin-source-close'),
+  };
+}
+
+rules.joplinSourceBlock = {
+  filter: function (node) {
+    return !!joplinSourceBlockInfo(node);
+  },
+
+  escapeContent: function() {
+    return false;
+  },
+
+  replacement: function (content, node, options) {
+    const info = joplinSourceBlockInfo(node);
+    if (!info) return;
+
+    return info.openCharacters + content + info.closeCharacters;
+  }
+}
+
 export default rules

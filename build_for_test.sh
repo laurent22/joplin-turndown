@@ -1,5 +1,6 @@
 #!/bin/bash
-ROOT_DIR=/mnt/c/Users/laurent/src/joplin
+# ROOT_DIR=/mnt/c/Users/laurent/src/joplin
+ROOT_DIR=/Users/laurent/src/joplin
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 set -e
 npm run build
@@ -7,4 +8,4 @@ npm run build
 # rsync -a ./lib/ $ROOT_DIR/ElectronClient/app/node_modules/joplin-turndown/lib/
 rm -rf $ROOT_DIR/CliClient/node_modules/joplin-turndown
 ln -s "$CURRENT_DIR" $ROOT_DIR/CliClient/node_modules/joplin-turndown
-$ROOT_DIR/CliClient/run_test.sh HtmlToMd
+cd $ROOT_DIR/CliClient && npm run test -- --filter=HtmlToMd
