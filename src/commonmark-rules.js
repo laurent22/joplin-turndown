@@ -65,37 +65,44 @@ rules.listItem = {
   filter: 'li',
 
   replacement: function (content, node, options) {
+    const joplinCheckbox = joplinCheckboxInfo(node);
+
     content = content
-      .replace(/^\n+/, '') // remove leading newlines
-      .replace(/\n+$/, '\n') // replace trailing newlines with just a single one
-      .replace(/\n/gm, '\n    ') // indent
-    var prefix = options.bulletListMarker + '   '
-    var parent = node.parentNode
-    if (parent.nodeName === 'OL') {
-      var start = parent.getAttribute('start')
-      var index = Array.prototype.indexOf.call(parent.children, node)
-      var indexStr = (start ? Number(start) + index : index + 1) + ''
-      // The content of the line that contains the bullet must align wih the following lines.
-      //
-      // i.e it should be:
-      //
-      // 9.  my content
-      //     second line
-      // 10. next one
-      //     second line
-      //
-      // But not:
-      //
-      // 9.  my content
-      //     second line
-      // 10.  next one
-      //     second line
-      //
-      prefix = indexStr + '.' + ' '.repeat(3 - indexStr.length)
-    }
-    return (
-      prefix + content + (node.nextSibling && !/\n$/.test(content) ? '\n' : '')
-    )
+        .replace(/^\n+/, '') // remove leading newlines
+        .replace(/\n+$/, '\n') // replace trailing newlines with just a single one
+
+    if (joplinCheckbox) {
+      return '- [' + (joplinCheckbox.checked ? 'x' : ' ') + '] ' + content;
+    } else {
+      content = content.replace(/\n/gm, '\n    ') // indent
+      var prefix = options.bulletListMarker + '   '
+      var parent = node.parentNode
+      if (parent.nodeName === 'OL') {
+        var start = parent.getAttribute('start')
+        var index = Array.prototype.indexOf.call(parent.children, node)
+        var indexStr = (start ? Number(start) + index : index + 1) + ''
+        // The content of the line that contains the bullet must align wih the following lines.
+        //
+        // i.e it should be:
+        //
+        // 9.  my content
+        //     second line
+        // 10. next one
+        //     second line
+        //
+        // But not:
+        //
+        // 9.  my content
+        //     second line
+        // 10.  next one
+        //     second line
+        //
+        prefix = indexStr + '.' + ' '.repeat(3 - indexStr.length)
+      }
+      return (
+        prefix + content + (node.nextSibling && !/\n$/.test(content) ? '\n' : '')
+      )
+    } 
   }
 }
 
@@ -399,6 +406,27 @@ rules.picture = {
   }
 }
 
+function findFirstDescendant(node, byType, name) {
+  for (const childNode of node.childNodes) {
+    if (byType === 'class' && childNode.classList.contains(name)) return childNode;
+    if (byType === 'nodeName' && childNode.nodeName === name) return childNode;
+
+    const sub = findFirstDescendant(childNode, byType, name);
+    if (sub) return sub;
+  }
+  return null;
+}
+
+function findParent(node, byType, name) {
+  while (true) {
+    const p = node.parentNode;
+    if (!p) return null;
+    if (byType === 'class' && p.classList.contains(name)) return p;
+    if (byType === 'nodeName' && p.nodeName === name) return p;
+    node = p;
+  }
+}
+
 // ===============================================================================
 // MATHJAX support
 //
@@ -510,6 +538,20 @@ rules.joplinSourceBlock = {
 
     return info.openCharacters + info.content + info.closeCharacters;
   }
+}
+
+
+// ===============================================================================
+// Checkoxes
+// ===============================================================================
+
+function joplinCheckboxInfo(node) {
+  if (!node.classList.contains('joplin-checkbox')) return null;
+  const input = findFirstDescendant(node, 'nodeName', 'INPUT');
+
+  return {
+    checked: input && input.getAttribute ? !!input.getAttribute('checked') : false,
+  };
 }
 
 export default rules
