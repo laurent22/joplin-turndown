@@ -17,6 +17,7 @@ Convert HTML into Markdown with JavaScript.
 - Detect more types of code blocks based on special cases.
 - Handle MathJax blocks
 - Allow a rule to specify whether it wants its content escaped or not
+- Added option `preserveImageTagsWithSize` to keep `<img/>` tags as HTML (no Markdown conversion) if they have width or height attributes
 
 ### to-markdown has been renamed to Turndown. See the [migration guide](https://github.com/domchristie/to-markdown/wiki/Migrating-from-to-markdown-to-Turndown) for details.
 

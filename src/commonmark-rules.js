@@ -343,7 +343,15 @@ rules.code = {
   }
 }
 
-function imageMarkdownFromNode(node) {
+function imageMarkdownFromNode(node, options = null) {
+  options = Object.assign({}, {
+    preserveImageTagsWithSize: false,
+  }, options);
+
+  if (options.preserveImageTagsWithSize && (node.getAttribute('width') || node.getAttribute('height'))) {
+    return node.outerHTML;
+  }
+
   var alt = node.alt || ''
   var src = node.getAttribute('src') || ''
   var title = node.title || ''
@@ -372,15 +380,15 @@ function imageUrlFromSource(node) {
 rules.image = {
   filter: 'img',
 
-  replacement: function (content, node) {
-    return imageMarkdownFromNode(node);
+  replacement: function (content, node, options) {
+    return imageMarkdownFromNode(node, options);
   }
 }
 
 rules.picture = {
   filter: 'picture',
 
-  replacement: function (content, node) {
+  replacement: function (content, node, options) {
     if (!node.childNodes) return '';
 
     let firstSource = null;
@@ -394,7 +402,7 @@ rules.picture = {
     }
 
     if (firstImg && firstImg.getAttribute('src')) {
-      return imageMarkdownFromNode(firstImg);
+      return imageMarkdownFromNode(firstImg, options);
     } else if (firstSource) {
       // A <picture> tag can have multiple <source> tag and the browser should decide which one to download
       // but for now let's pick the first one.
