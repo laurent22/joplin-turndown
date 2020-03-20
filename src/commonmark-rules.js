@@ -65,17 +65,17 @@ rules.listItem = {
   filter: 'li',
 
   replacement: function (content, node, options) {
-    const joplinCheckbox = joplinCheckboxInfo(node);
-
     content = content
         .replace(/^\n+/, '') // remove leading newlines
         .replace(/\n+$/, '\n') // replace trailing newlines with just a single one
 
+    var prefix = options.bulletListMarker + ' '
+    content = content.replace(/\n/gm, '\n    ') // indent
+
+    const joplinCheckbox = joplinCheckboxInfo(node);
     if (joplinCheckbox) {
-      return '- [' + (joplinCheckbox.checked ? 'x' : ' ') + '] ' + content;
+      prefix = '- [' + (joplinCheckbox.checked ? 'x' : ' ') + '] ';
     } else {
-      content = content.replace(/\n/gm, '\n    ') // indent
-      var prefix = options.bulletListMarker + '   '
       var parent = node.parentNode
       if (parent.nodeName === 'OL') {
         var start = parent.getAttribute('start')
@@ -99,10 +99,11 @@ rules.listItem = {
         //
         prefix = indexStr + '.' + ' '.repeat(3 - indexStr.length)
       }
-      return (
-        prefix + content + (node.nextSibling && !/\n$/.test(content) ? '\n' : '')
-      )
     } 
+
+    return (
+      prefix + content + (node.nextSibling && !/\n$/.test(content) ? '\n' : '')
+    )
   }
 }
 
@@ -429,7 +430,7 @@ function findParent(node, byType, name) {
   while (true) {
     const p = node.parentNode;
     if (!p) return null;
-    if (byType === 'class' && p.classList.contains(name)) return p;
+    if (byType === 'class' && p.classList && p.classList.contains(name)) return p;
     if (byType === 'nodeName' && p.nodeName === name) return p;
     node = p;
   }
@@ -553,13 +554,26 @@ rules.joplinSourceBlock = {
 // Checkoxes
 // ===============================================================================
 
-function joplinCheckboxInfo(node) {
-  if (!node.classList.contains('joplin-checkbox')) return null;
-  const input = findFirstDescendant(node, 'nodeName', 'INPUT');
+function joplinCheckboxInfo(liNode) {
+  if (liNode.classList.contains('joplin-checkbox')) {
+    // Handling of this rendering is buggy as it adds extra new lines between each
+    // list item. However, supporting this rendering is normally no longer needed.
+    const input = findFirstDescendant(liNode, 'nodeName', 'INPUT');
+    return {
+      checked: input && input.getAttribute ? !!input.getAttribute('checked') : false,
+      renderingType: 1,
+    };
+  }
 
-  return {
-    checked: input && input.getAttribute ? !!input.getAttribute('checked') : false,
-  };
+  const parentChecklist = findParent(liNode, 'class', 'joplin-checklist');
+  if (parentChecklist) {
+    return {
+      checked: !!liNode.classList && liNode.classList.contains('checked'),
+      renderingType: 2,
+    };
+  }
+
+  return null;
 }
 
 export default rules
