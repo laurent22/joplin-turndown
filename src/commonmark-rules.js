@@ -231,7 +231,7 @@ rules.inlineLink = {
     if (!href) {
       return getNamedAnchorFromLink(node, options) + filterLinkContent(content)
     } else {
-      var title = node.title ? ' "' + node.title + '"' : ''
+      var title = node.title && node.title !== href ? ' "' + node.title + '"' : ''
       if (!href) title = ''
       return getNamedAnchorFromLink(node, options) + '[' + filterLinkContent(content) + '](' + href + title + ')'
     }
