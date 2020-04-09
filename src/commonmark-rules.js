@@ -533,7 +533,7 @@ rules.joplinHtmlInMarkdown = {
   },
 
   replacement: function (content, node) {
-    node.classList.remove('jop-htmlInMd');
+    node.classList.remove('jop-noMdConv');
     const nodeName = node.nodeName.toLowerCase();
     let attrString = attributesHtml(node.attributes, { skipEmptyClass: true });
     if (attrString) attrString = ' ' + attrString;
