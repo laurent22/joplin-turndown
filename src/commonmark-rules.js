@@ -78,6 +78,15 @@ rules.list = {
   }
 }
 
+// OL elements are ordered lists, but other elements with a "list-style-type: decimal" style
+// should also be considered ordered lists, at least that's how they are rendered
+// in browsers.
+// https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type
+function isOrderedList(e) {
+  if (e.nodeName === 'OL') return true;
+  return e.style && e.style.listStyleType === 'decimal';
+}
+
 rules.listItem = {
   filter: 'li',
 
@@ -94,7 +103,7 @@ rules.listItem = {
       prefix = '- [' + (joplinCheckbox.checked ? 'x' : ' ') + '] ';
     } else {
       var parent = node.parentNode
-      if (parent.nodeName === 'OL') {
+      if (isOrderedList(parent)) {
         var start = parent.getAttribute('start')
         var index = Array.prototype.indexOf.call(parent.children, node)
         var indexStr = (start ? Number(start) + index : index + 1) + ''
