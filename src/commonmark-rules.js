@@ -3,6 +3,23 @@ const Entities = require('html-entities').AllHtmlEntities;
 const htmlentities = (new Entities()).encode;
 const css = require('css');
 
+function attributesHtml(attributes, options = null) {
+  if (!attributes) return '';
+
+  options = Object.assign({}, {
+    skipEmptyClass: false,
+  }, options);
+
+  const output = [];
+
+  for (let attr of attributes) {
+    if (attr.name === 'class' && !attr.value && options.skipEmptyClass) continue;
+    output.push(`${attr.name}="${htmlentities(attr.value)}"`);
+  }
+
+  return output.join(' ');
+}
+
 var rules = {}
 
 rules.paragraph = {
@@ -61,6 +78,15 @@ rules.list = {
   }
 }
 
+// OL elements are ordered lists, but other elements with a "list-style-type: decimal" style
+// should also be considered ordered lists, at least that's how they are rendered
+// in browsers.
+// https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type
+function isOrderedList(e) {
+  if (e.nodeName === 'OL') return true;
+  return e.style && e.style.listStyleType === 'decimal';
+}
+
 rules.listItem = {
   filter: 'li',
 
@@ -77,7 +103,7 @@ rules.listItem = {
       prefix = '- [' + (joplinCheckbox.checked ? 'x' : ' ') + '] ';
     } else {
       var parent = node.parentNode
-      if (parent.nodeName === 'OL') {
+      if (isOrderedList(parent)) {
         var start = parent.getAttribute('start')
         var index = Array.prototype.indexOf.call(parent.children, node)
         var indexStr = (start ? Number(start) + index : index + 1) + ''
@@ -502,7 +528,28 @@ rules.mathjaxScriptBlock = {
 // End of MATHJAX support
 // ===============================================================================
 
+// ===============================================================================
+// Joplin "noMdConv" support
+// 
+// Tags that have the class "jop-noMdConv" are not converted to Markdown
+// but left as HTML. This is useful when converting from MD to HTML, then
+// back to MD again. In that case, we'd want to preserve the code that
+// was in HTML originally.
+// ===============================================================================
 
+rules.joplinHtmlInMarkdown = {
+  filter: function (node) {
+    return node && node.classList && node.classList.contains('jop-noMdConv');
+  },
+
+  replacement: function (content, node) {
+    node.classList.remove('jop-noMdConv');
+    const nodeName = node.nodeName.toLowerCase();
+    let attrString = attributesHtml(node.attributes, { skipEmptyClass: true });
+    if (attrString) attrString = ' ' + attrString;
+    return '<' + nodeName + attrString + '>' + content + '</' + nodeName + '>';
+  }
+}
 
 // ===============================================================================
 // Joplin Source block support
@@ -552,7 +599,7 @@ rules.joplinSourceBlock = {
 
 
 // ===============================================================================
-// Checkoxes
+// Checkboxes
 // ===============================================================================
 
 function joplinCheckboxInfo(liNode) {
