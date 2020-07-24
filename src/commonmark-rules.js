@@ -129,6 +129,7 @@ function isCodeBlockSpecialCase2(node) {
   const o = css.parse('pre {' + style + '}');
   if (!o.stylesheet.rules.length) return;
   const fontFamily = o.stylesheet.rules[0].declarations.find(d => d.property.toLowerCase() === 'font-family');
+  if (!fontFamily || !fontFamily.value) return false;
   const isMonospace = fontFamily.value.split(',').map(e => e.trim().toLowerCase()).indexOf('monospace') >= 0;
   return isMonospace;
 }
