@@ -1,6 +1,6 @@
 #!/bin/bash
 # ROOT_DIR=/mnt/c/Users/laurent/src/joplin
-ROOT_DIR=/Users/laurent/src/joplin
+ROOT_DIR=/home/laurent/source/joplin
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 set -e
 npm run build
