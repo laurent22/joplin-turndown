@@ -229,7 +229,19 @@ function filterLinkHref (href) {
   // Replace the spaces with %20 because otherwise they can cause problems for some
   // renderer and space is not a valid URL character anyway.
   href = href.replace(/ /g, '%20');
+  // Brackets also should be escaped
+  href = href.replace(/\(/g, '%28');
+  href = href.replace(/\)/g, '%29');
   return href
+}
+
+function filterImageTitle(title) {
+  if (!title) return ''
+  title = title.trim()
+  title = title.replace(/\"/g, '&quot;');
+  title = title.replace(/\(/g, '&#40;');
+  title = title.replace(/\)/g, '&#41;');
+  return title
 }
 
 function getNamedAnchorFromLink(node, options) {
@@ -381,9 +393,9 @@ function imageMarkdownFromNode(node, options = null) {
   }
 
   var alt = node.alt || ''
-  var src = node.getAttribute('src') || ''
+  var src = filterLinkHref(node.getAttribute('src') || '')
   var title = node.title || ''
-  var titlePart = title ? ' "' + title + '"' : ''
+  var titlePart = title ? ' "' + filterImageTitle(title) + '"' : ''
   return src ? '![' + alt.replace(/([[\]])/g, '\\$1') + ']' + '(' + src + titlePart + ')' : ''
 }
 
