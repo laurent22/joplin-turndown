@@ -1,6 +1,12 @@
 # Turndown
 
-[![Build Status](https://travis-ci.org/domchristie/turndown.svg?branch=master)](https://travis-ci.org/domchristie/turndown)
+* * *
+
+**IMPORTANT: This package is now hosted there: https://github.com/laurent22/joplin/tree/dev/packages/turndown**
+
+It can be installed using `npm install --save @joplin/turndown`
+
+* * *
 
 Convert HTML into Markdown with JavaScript.
 
